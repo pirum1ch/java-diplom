@@ -3,7 +3,7 @@ package ru.netology.graphics.image;
 public class TextColorScheme implements TextColorSchema{
 
     char [] chars  = {'▇', '●', '◉', '◍', '◎', '○', '☉', '◌', '-'};
-
+    //TODO Рефактор - в одну строчку
     @Override
     public char convert(int color) {
         char returnValue = chars[0];
