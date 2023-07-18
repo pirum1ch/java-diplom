@@ -36,6 +36,7 @@ public class TextToGraphicConverter implements TextGraphicsConverter {
         // будет 100x10 (в 1.5 раза меньше).
         // Подумайте, какими действиями можно вычислить новые размеры.
         // Не получается? Спросите вашего руководителя по курсовой, поможем.
+
         //TODO поправить работу с размерами
         int newWidth = img.getWidth();
         int newHeight = img.getHeight();
