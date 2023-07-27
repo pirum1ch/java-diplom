@@ -6,13 +6,16 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class TextToGraphicConverter implements TextGraphicsConverter {
 
+    private int maxWidth;
+    private int maxHeight;
+    private double maxRatio;
 
     @Override
     public String convert(String url) throws IOException, BadImageSizeException {
+
         TextColorScheme schema = new TextColorScheme();
 
         String totalString = null;
@@ -37,9 +40,29 @@ public class TextToGraphicConverter implements TextGraphicsConverter {
         // Подумайте, какими действиями можно вычислить новые размеры.
         // Не получается? Спросите вашего руководителя по курсовой, поможем.
 
-        //TODO поправить работу с размерами
         int newWidth = img.getWidth();
         int newHeight = img.getHeight();
+
+        int originalWidth = img.getWidth();
+        int originalHeight = img.getHeight();
+
+        if (maxWidth != 0 & maxHeight == 0) {
+            double aspectRatio = (double) maxWidth / originalWidth;
+            newWidth = maxWidth;
+            newHeight = (int) (originalHeight * aspectRatio);
+        } else if (maxWidth == 0 & maxHeight != 0) {
+            double aspectRatio = (double) maxHeight / originalHeight;
+            newHeight = maxHeight;
+            newWidth = (int) (originalWidth * aspectRatio);
+        } else if (maxWidth != 0 & maxHeight != 0) {
+            newHeight = maxHeight;
+            newWidth = maxWidth;
+        } else if (maxRatio != 0) {
+            double aspectRatio = (double) originalHeight / originalWidth;
+            if (aspectRatio > maxRatio) {
+                throw new BadImageSizeException(aspectRatio, maxRatio);
+            }
+        }
 
         // Теперь нам нужно попросить картинку изменить свои размеры на новые.
         // Последний параметр означает, что мы просим картинку плавно сузиться
@@ -85,45 +108,52 @@ public class TextToGraphicConverter implements TextGraphicsConverter {
         // получить степень белого пикселя (int color выше) и по ней
         // получить соответствующий символ c. Логикой превращения цвета
         // в символ будет заниматься другой объект, который мы рассмотрим ниже
-//       Ω ArrayList <String> symbols = new ArrayList<>();
-        char [][] symbols  = new char[newHeight][newWidth];
 
-        for (int h = 0; h < img.getHeight()-1; h++) {
-            for (int w = 0; w < img.getWidth()-1; w++) {
+        StringBuilder strb = new StringBuilder();
+
+        for (int h = 0; h < newHeight; h++) {
+            for (int w = 0; w < newWidth; w++) {
                 int color = bwRaster.getPixel(w, h, new int[3])[0];
                 char c = schema.convert(color);
                 //запоминаем символ c, например, в двумерном массиве или как-то ещё на ваше усмотрение
-                symbols[h][w] = c;
+                totalString = strb.append(c).append(c).toString();
             }
+            totalString = strb.append("\n").toString();
         }
 
         // Осталось собрать все символы в один большой текст.
         // Для того, чтобы изображение не было слишком узким, рекомендую
         // каждый пиксель превращать в два повторяющихся символа, полученных
         // от схемы.
-        StringBuilder strb = new StringBuilder();
-        for (int i=0; i<symbols.length-1; i++) {
-            totalString = strb.append("\n").toString();
-            for (int j = 0; j < symbols[i].length; j++) {
-                totalString = strb.append(symbols[i][j]).toString();
-            }
-        }
+
         return totalString; // Возвращаем собранный текст.
     }
 
     @Override
     public void setMaxWidth(int width) {
-
+        if (width > 0) {
+            this.maxWidth = width;
+        } else {
+            throw new IllegalArgumentException("Ширина не может быть отрицательной");
+        }
     }
 
     @Override
     public void setMaxHeight(int height) {
-
+        if (height > 0) {
+            this.maxHeight = height;
+        } else {
+            throw new IllegalArgumentException("Высота не может быть отрицательной");
+        }
     }
 
     @Override
     public void setMaxRatio(double maxRatio) {
-
+        if (maxRatio > 0) {
+            this.maxRatio = maxRatio;
+        } else {
+            throw new IllegalArgumentException("Ratio не может быть отрицательным");
+        }
     }
 
     @Override
